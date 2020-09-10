@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Books.API.Context;
 using Books.API.Entities;
@@ -20,6 +21,13 @@ namespace Books.API.Services
             return await _context.Books
                 .Include(x => x.Author)
                 .SingleOrDefaultAsync(x => x.Id == id);
+        }
+
+        public IEnumerable<Book> GetBooks()
+        {
+            return _context.Books
+                .Include(x => x.Author)
+                .ToList();
         }
 
         public async Task<IEnumerable<Book>> GetBooksAsync()
