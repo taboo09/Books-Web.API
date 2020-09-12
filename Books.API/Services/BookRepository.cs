@@ -15,7 +15,17 @@ namespace Books.API.Services
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        
+
+        public void AddBook(Book book)
+        {
+            if (book == null) 
+            {
+                throw new ArgumentNullException(nameof(book));
+            }
+
+            _context.Add(book);
+        }
+
         public async Task<Book> GetBookAsync(Guid id)
         {
             return await _context.Books
@@ -35,6 +45,19 @@ namespace Books.API.Services
             return await _context.Books
                 .Include(x => x.Author)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Book>> GetBooksAsync(IEnumerable<Guid> bookIds)
+        {
+            return await _context.Books
+                .Where(x => bookIds.Contains(x.Id))
+                .Include(x => x.Author)
+                .ToListAsync();
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return (await _context.SaveChangesAsync() > 0);
         }
     }
 }
