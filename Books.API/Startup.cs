@@ -36,6 +36,8 @@ namespace Books.API
 
             services.AddScoped<IBookRepository, BookRepository>();
 
+            services.AddHttpClient();
+
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         }
 

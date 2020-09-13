@@ -31,14 +31,16 @@ namespace Books.API.Controllers
 
         [HttpGet]
         [Route("{id}", Name = "GetBook")]
-        [BookResultFilter]
+        [BookWithCoversResultFilter]
         public async Task<IActionResult> GetBook(Guid id)
         {
             var book = await _bookRepository.GetBookAsync(id);
 
             if (book == null) return NotFound();
 
-            return Ok(book);
+            var bookCovers = await _bookRepository.GetBookCoversAsync(id);
+
+            return Ok((book: book, bookCovers: bookCovers));
         }
 
         [HttpPost]
