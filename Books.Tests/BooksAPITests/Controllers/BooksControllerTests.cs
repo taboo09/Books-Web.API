@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Books.API.Models;
 using Books.Tests.BooksAPITests.WebAppFactory;
 using FluentAssertions;
+// using Newtonsoft.Json;
 using Xunit;
 
 namespace Books.Tests.BooksAPITests.Controllers
@@ -66,10 +69,58 @@ namespace Books.Tests.BooksAPITests.Controllers
         [Fact]
         public async Task GetBook_ReturnsNotFound_WhenBookIsNull()
         {
-            var bookId = new Guid();
+            var bookId = Guid.NewGuid();
             var response = await _client.GetAsync($"books\\{bookId}");
 
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task AddBook_ReturnsCreatedAtRoute_WhenNewBookIsPassedAsParameter()
+        {
+            var newBook = CreateBookForCreation();
+
+            string jsonObject = Newtonsoft.Json.JsonConvert.SerializeObject(newBook);
+            var payload = new StringContent(jsonObject, Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync($"books", payload);
+
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        [Fact]
+        public async Task AddBook_ReturnBookWithCovers_WhenNewBookIsPassedAsParameter()
+        {
+            var newBook = CreateBookForCreation();
+
+            string jsonObject = Newtonsoft.Json.JsonConvert.SerializeObject(newBook);
+            var payload = new StringContent(jsonObject, Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync($"books", payload);
+
+            var bookWithCovers = new BookWithCovers();
+
+            if (response.IsSuccessStatusCode)
+            {
+                bookWithCovers =  JsonSerializer.Deserialize<Books.API.Models.BookWithCovers>(await response.Content.ReadAsStringAsync(),
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+            }
+
+            bookWithCovers.Title.Should().Be(newBook.Title);
+            bookWithCovers.Id.Should().NotBe(new Guid());
+        }
+
+        private BookForCreation CreateBookForCreation()
+        {
+            return new BookForCreation()
+            {
+                AuthorId = Guid.NewGuid(),
+                Title = "Test Book",
+                Description = "Description for Test"
+            };
         }
     }
 }
